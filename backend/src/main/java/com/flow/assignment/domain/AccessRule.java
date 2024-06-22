@@ -38,12 +38,8 @@ public class AccessRule {
         ZoneId fromZoneId = ZoneId.of(this.timeZone);
         ZoneId toZoneId = ZoneId.of(timeZone);
 
-        LocalDateTime convertedStartTime = startTime.atZone(fromZoneId)
-                .withZoneSameInstant(toZoneId)
-                .toLocalDateTime();
-        LocalDateTime convertedEndTime = endTime.atZone(fromZoneId)
-                .withZoneSameInstant(toZoneId)
-                .toLocalDateTime();
+        LocalDateTime convertedStartTime = convertTime(startTime, fromZoneId, toZoneId);
+        LocalDateTime convertedEndTime = convertTime(endTime, fromZoneId, toZoneId);
 
         return AccessRule.builder()
                 .id(this.id)
@@ -52,5 +48,11 @@ public class AccessRule {
                 .startTime(convertedStartTime)
                 .endTime(convertedEndTime)
                 .build();
+    }
+
+    private LocalDateTime convertTime(final LocalDateTime time, final ZoneId fromZoneId, final ZoneId toZoneId) {
+        return time.atZone(fromZoneId)
+                .withZoneSameInstant(toZoneId)
+                .toLocalDateTime();
     }
 }
