@@ -64,7 +64,7 @@ public class AccessRuleAcceptance {
         post(URI, requestBody);
 
         // when
-        ValidatableResponse response = get(URI + "?page=1&size=2");
+        ValidatableResponse response = get(URI + "?page=1&size=2", new Header("Time-Zone", "America/New_York"));
 
         // then
         response.statusCode(200)
@@ -103,8 +103,9 @@ public class AccessRuleAcceptance {
                 .then().log().all();
     }
 
-    ValidatableResponse get(String uri) {
+    ValidatableResponse get(final String uri, final Header timeZone) {
         return RestAssured.given().log().all()
+                .header(timeZone)
                 .accept(MediaType.APPLICATION_JSON_VALUE)
                 .when().get(uri)
                 .then().log().all();

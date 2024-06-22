@@ -5,6 +5,8 @@ import com.flow.assignment.domain.AccessRuleRepository;
 import com.flow.assignment.dto.request.CreatingAccessRuleRequest;
 import com.flow.assignment.dto.request.PagingRequest;
 import com.flow.assignment.dto.response.IpAccessRuleResponses;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -21,7 +23,8 @@ public class AccessRuleService {
     private final AccessRuleRepository accessRuleRepository;
 
     public Long save(final CreatingAccessRuleRequest request, final String timeZone) {
-        AccessRule accessRule = AccessRule.builder().ipAddress(request.getIpAddress())
+        AccessRule accessRule = AccessRule.builder()
+                .ipAddress(request.getIpAddress())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .content(request.getContent())
@@ -39,6 +42,14 @@ public class AccessRuleService {
     public IpAccessRuleResponses findAll(final PagingRequest pagingRequest, final String timeZone) {
         Slice<AccessRule> rules = accessRuleRepository.findAll(
                 PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()));
-        return IpAccessRuleResponses.of(rules.hasNext(), rules.getContent());
+
+        List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
+        return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
+    }
+
+    private List<AccessRule> convertTimeZone(final List<AccessRule> rules, final String timeZone) {
+        return rules.stream()
+                .map(accessRule -> accessRule.convertTimeZone(timeZone))
+                .collect(Collectors.toList());
     }
 }

@@ -6,6 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +15,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "access_rule")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 public class AccessRule {
 
@@ -20,23 +24,34 @@ public class AccessRule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String IpAddress;
+    private String ipAddress;
 
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
 
     private String content;
-    
+
     private String timeZone;
 
-    @Builder
-    public AccessRule(final String ipAddress, final LocalDateTime startTime, final LocalDateTime endTime,
-                      final String timeZone, final String content) {
-        IpAddress = ipAddress;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.content = content;
-        this.timeZone = timeZone;
+    public AccessRule convertTimeZone(final String timeZone) {
+        ZoneId fromZoneId = ZoneId.of(this.timeZone);
+        ZoneId toZoneId = ZoneId.of(timeZone);
+
+        LocalDateTime convertedStartTime = startTime.atZone(fromZoneId)
+                .withZoneSameInstant(toZoneId)
+                .toLocalDateTime();
+        LocalDateTime convertedEndTime = endTime.atZone(fromZoneId)
+                .withZoneSameInstant(toZoneId)
+                .toLocalDateTime();
+
+        return AccessRule.builder()
+                .id(this.id)
+                .ipAddress(this.ipAddress)
+                .content(this.content)
+                .startTime(convertedStartTime)
+                .endTime(convertedEndTime)
+                .timeZone(timeZone)
+                .build();
     }
 }
