@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class IpAccessRuleResponse {
 
+    private final Long id;
+
     private final String ipAddress;
 
     private final String content;
@@ -21,6 +23,7 @@ public class IpAccessRuleResponse {
 
     public static IpAccessRuleResponse from(final AccessRule accessRule) {
         return IpAccessRuleResponse.builder()
+                .id(accessRule.getId())
                 .ipAddress(accessRule.getIpAddress())
                 .content(accessRule.getContent())
                 .startTime(accessRule.getStartTime())
