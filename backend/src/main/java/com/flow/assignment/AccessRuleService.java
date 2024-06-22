@@ -25,4 +25,8 @@ public class AccessRuleService {
         AccessRule savedAccessRule = accessRuleRepository.save(accessRule);
         return savedAccessRule.getId();
     }
+
+    public void deleteById(final Long id) {
+        accessRuleRepository.deleteById(id);
+    }
 }

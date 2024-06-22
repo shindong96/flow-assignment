@@ -50,6 +50,27 @@ public class AccessRuleAcceptance {
                 .header("Location", notNullValue());
     }
 
+    @DisplayName("접근 제한 규칙의 id를 통해 정보를 삭제하고 204를 반환한다.")
+    @Test
+    void delete() {
+        // given
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("ipAddress", "11.111.111.111");
+        requestBody.put("startTime", "2024/12/24 15:23");
+        requestBody.put("endTime", "2024/12/24 15:25");
+        requestBody.put("content", "IP 주소입니다.");
+        final String accessRuleId = post("/access-rules", requestBody)
+                .extract()
+                .header("Location")
+                .split("/access-rules/")[1];
+
+        // when
+        ValidatableResponse response = delete("/access-rules/" + accessRuleId);
+
+        // then
+        response.statusCode(204);
+    }
+
     private ValidatableResponse post(final String uri, final Object requestBody) {
         return RestAssured.given().log().all()
                 .header(new Header("Time-Zone", "Asia/Seoul"))
@@ -57,6 +78,12 @@ public class AccessRuleAcceptance {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .accept(MediaType.APPLICATION_JSON_VALUE)
                 .when().post(uri)
+                .then().log().all();
+    }
+
+    private ValidatableResponse delete(final String uri) {
+        return RestAssured.given().log().all()
+                .when().delete(uri)
                 .then().log().all();
     }
 }
