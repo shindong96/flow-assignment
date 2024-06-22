@@ -1,6 +1,5 @@
 package com.flow.assignment.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.flow.assignment.dto.request.validation.ValidIpAddress;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
@@ -17,10 +16,8 @@ public class CreatingAccessRuleRequest {
     @NotBlank
     private String ipAddress;
 
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime startTime;
 
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime endTime;
 
     private String content;
