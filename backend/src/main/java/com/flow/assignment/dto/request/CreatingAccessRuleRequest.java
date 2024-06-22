@@ -1,6 +1,7 @@
 package com.flow.assignment.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.flow.assignment.dto.request.validation.ValidIpAddress;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.flow.assignment.dto.request;
+package com.flow.assignment.dto.request.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
