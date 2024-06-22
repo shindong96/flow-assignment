@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,16 +37,18 @@ public class AccessRuleService {
         return savedAccessRule.getId();
     }
 
-    public void deleteById(final Long id) {
-        accessRuleRepository.deleteById(id);
-    }
-
+    @Transactional(readOnly = true)
     public IpAccessRuleResponses findAll(final PagingRequest pagingRequest, final String timeZone) {
         Slice<AccessRule> rules = accessRuleRepository.findAll(
-                PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()));
+                PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()
+                        , Sort.by(Direction.DESC, "id")));
 
         List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
         return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
+    }
+
+    public void deleteById(final Long id) {
+        accessRuleRepository.deleteById(id);
     }
 
     private List<AccessRule> convertTimeZone(final List<AccessRule> rules, final String timeZone) {

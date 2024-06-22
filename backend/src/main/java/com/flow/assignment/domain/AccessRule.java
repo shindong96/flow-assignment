@@ -51,7 +51,6 @@ public class AccessRule {
                 .content(this.content)
                 .startTime(convertedStartTime)
                 .endTime(convertedEndTime)
-                .timeZone(timeZone)
                 .build();
     }
 }
