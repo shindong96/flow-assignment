@@ -18,6 +18,7 @@ public class AccessRuleService {
         AccessRule accessRule = AccessRule.builder().ipAddress(request.getIpAddress())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
+                .content(request.getContent())
                 .timeZone(timeZone)
                 .build();
 

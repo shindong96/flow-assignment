@@ -40,6 +40,7 @@ public class AccessRuleAcceptance {
         requestBody.put("ipAddress", "11.111.111.111");
         requestBody.put("startTime", "2024/12/24 15:23");
         requestBody.put("endTime", "2024/12/24 15:25");
+        requestBody.put("content", "IP 주소입니다.");
 
         // when
         ValidatableResponse response = post("/access-rules", requestBody);

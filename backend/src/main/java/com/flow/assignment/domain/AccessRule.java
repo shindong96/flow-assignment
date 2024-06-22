@@ -26,14 +26,17 @@ public class AccessRule {
 
     private LocalDateTime endTime;
 
+    private String content;
+    
     private String timeZone;
 
     @Builder
     public AccessRule(final String ipAddress, final LocalDateTime startTime, final LocalDateTime endTime,
-                      final String timeZone) {
+                      final String timeZone, final String content) {
         IpAddress = ipAddress;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.content = content;
         this.timeZone = timeZone;
     }
 }

@@ -22,4 +22,6 @@ public class CreatingAccessRuleRequest {
 
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime endTime;
+
+    private String content;
 }
