@@ -1,4 +1,4 @@
-package com.flow.assignment;
+package com.flow.assignment.application;
 
 import com.flow.assignment.domain.AccessRule;
 import com.flow.assignment.domain.AccessRuleRepository;

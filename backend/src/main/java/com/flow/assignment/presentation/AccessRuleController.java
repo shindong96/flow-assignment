@@ -1,5 +1,6 @@
-package com.flow.assignment;
+package com.flow.assignment.presentation;
 
+import com.flow.assignment.application.AccessRuleService;
 import com.flow.assignment.dto.request.CreatingAccessRuleRequest;
 import com.flow.assignment.dto.request.PagingRequest;
 import com.flow.assignment.dto.response.IpAccessRuleResponses;
