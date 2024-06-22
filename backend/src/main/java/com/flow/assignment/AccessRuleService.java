@@ -1,5 +1,7 @@
 package com.flow.assignment;
 
+import com.flow.assignment.domain.AccessRule;
+import com.flow.assignment.domain.AccessRuleRepository;
 import com.flow.assignment.dto.request.CreatingAccessRuleRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AccessRuleService {
 
-    public Long save(final CreatingAccessRuleRequest accessRuleRequest, final String timeZone) {
-        return 1L;
+    private final AccessRuleRepository accessRuleRepository;
+
+    public Long save(final CreatingAccessRuleRequest request, final String timeZone) {
+        AccessRule accessRule = AccessRule.builder().ipAddress(request.getIpAddress())
+                .startTime(request.getStartTime())
+                .endTime(request.getEndTime())
+                .timeZone(timeZone)
+                .build();
+
+        AccessRule savedAccessRule = accessRuleRepository.save(accessRule);
+        return savedAccessRule.getId();
     }
 }
