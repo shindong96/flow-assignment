@@ -22,6 +22,7 @@ public class AccessRuleService {
 
     private static final int DIFFERENCES_PAGES_AND_DB_INDEX = 1;
     private static final Sort SORT_DIRECTION_DESC_BY_ID = Sort.by(Direction.DESC, "id");
+    private static final String GMT_TIME_ZONE = "GMT";
 
     private final AccessRuleRepository accessRuleRepository;
 
@@ -34,7 +35,8 @@ public class AccessRuleService {
                 .timeZone(timeZone)
                 .build();
 
-        AccessRule savedAccessRule = accessRuleRepository.save(accessRule);
+        AccessRule savedAccessRule = accessRuleRepository.save(
+                accessRule.convertTimeZone(GMT_TIME_ZONE));
         return savedAccessRule.getId();
     }
 

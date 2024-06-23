@@ -1,12 +1,12 @@
 package com.flow.assignment.domain;
 
+import com.flow.assignment.support.TimeZoneConverter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,12 +34,9 @@ public class AccessRule {
 
     private String timeZone;
 
-    public AccessRule convertTimeZone(final String timeZone) {
-        ZoneId fromZoneId = ZoneId.of(this.timeZone);
-        ZoneId toZoneId = ZoneId.of(timeZone);
-
-        LocalDateTime convertedStartTime = convertTime(startTime, fromZoneId, toZoneId);
-        LocalDateTime convertedEndTime = convertTime(endTime, fromZoneId, toZoneId);
+    public AccessRule convertTimeZone(final String toZone) {
+        LocalDateTime convertedStartTime = TimeZoneConverter.convert(startTime, timeZone, toZone);
+        LocalDateTime convertedEndTime = TimeZoneConverter.convert(endTime, timeZone, toZone);
 
         return AccessRule.builder()
                 .id(this.id)
@@ -47,12 +44,7 @@ public class AccessRule {
                 .content(this.content)
                 .startTime(convertedStartTime)
                 .endTime(convertedEndTime)
+                .timeZone(toZone)
                 .build();
-    }
-
-    private LocalDateTime convertTime(final LocalDateTime time, final ZoneId fromZoneId, final ZoneId toZoneId) {
-        return time.atZone(fromZoneId)
-                .withZoneSameInstant(toZoneId)
-                .toLocalDateTime();
     }
 }
