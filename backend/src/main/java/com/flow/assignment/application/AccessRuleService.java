@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccessRuleService {
 
     private static final int DIFFERENCES_PAGES_AND_DB_INDEX = 1;
+    private static final Sort SORT_DIRECTION_DESC_BY_ID = Sort.by(Direction.DESC, "id");
 
     private final AccessRuleRepository accessRuleRepository;
 
@@ -41,7 +42,22 @@ public class AccessRuleService {
     public IpAccessRuleResponses findAll(final PagingRequest pagingRequest, final String timeZone) {
         Slice<AccessRule> rules = accessRuleRepository.findAll(
                 PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()
-                        , Sort.by(Direction.DESC, "id")));
+                        , SORT_DIRECTION_DESC_BY_ID));
+
+        List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
+        return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
+    }
+
+    @Transactional(readOnly = true)
+    public IpAccessRuleResponses findByContentContaining(final PagingRequest pagingRequest, final String content,
+                                                         final String timeZone) {
+        if (content == null) {
+            return findAll(pagingRequest, timeZone);
+        }
+
+        Slice<AccessRule> rules = accessRuleRepository.findByContentContaining(content,
+                PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()
+                        , SORT_DIRECTION_DESC_BY_ID));
 
         List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
         return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);

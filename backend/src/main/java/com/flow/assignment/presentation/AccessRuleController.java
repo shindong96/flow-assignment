@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,19 +24,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/access-rules")
 public class AccessRuleController {
 
+    private static final String TIME_ZONE = "Time-Zone";
     private final AccessRuleService accessRuleService;
 
     @PostMapping
     public ResponseEntity<Void> create(@RequestBody @Valid final CreatingAccessRuleRequest accessRuleRequest, final
     HttpServletRequest request) {
-        Long savedId = accessRuleService.save(accessRuleRequest, request.getHeader("Time-Zone"));
+        Long savedId = accessRuleService.save(accessRuleRequest, request.getHeader(TIME_ZONE));
         return ResponseEntity.created(URI.create("/access-rules/" + savedId)).build();
     }
 
     @GetMapping
     public ResponseEntity<IpAccessRuleResponses> findAll(@ModelAttribute @Valid final PagingRequest pagingRequest,
                                                          final HttpServletRequest request) {
-        IpAccessRuleResponses responses = accessRuleService.findAll(pagingRequest, request.getHeader("Time-Zone"));
+        IpAccessRuleResponses responses = accessRuleService.findAll(pagingRequest, request.getHeader(TIME_ZONE));
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/content")
+    public ResponseEntity<IpAccessRuleResponses> findByContentContaining(
+            @ModelAttribute @Valid final PagingRequest pagingRequest,
+            @RequestParam(required = false) final String inclusion,
+            final HttpServletRequest request) {
+        IpAccessRuleResponses responses = accessRuleService.findByContentContaining(pagingRequest, inclusion,
+                request.getHeader(TIME_ZONE));
         return ResponseEntity.ok(responses);
     }
 

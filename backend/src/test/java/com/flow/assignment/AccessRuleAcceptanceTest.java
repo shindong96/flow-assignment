@@ -12,6 +12,8 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -70,6 +72,33 @@ public class AccessRuleAcceptanceTest {
         response.statusCode(200)
                 .body("hasNext", equalTo(false))
                 .body("accessRules.size()", equalTo(1));
+    }
+
+    @DisplayName("특정 content를 포함하는 ip 규칙을 조회하고 200을 반환한다.")
+    @ParameterizedTest
+    @CsvSource(value = {"카카오,false,2", ",true,2", "구글,false,1"})
+    void findByContentContaining(String content, boolean hasNext, int size) {
+        // given
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("ipAddress", "11.111.111.111");
+        requestBody.put("startTime", "2024/12/24 15:23");
+        requestBody.put("endTime", "2024/12/24 15:25");
+        requestBody.put("content", "구글 IP 주소입니다.");
+        post(URI, requestBody);
+        requestBody.put("content", "카카오톡 IP 주소입니다.");
+        post(URI, requestBody);
+        requestBody.put("content", "카카오페이IP 주소입니다.");
+        post(URI, requestBody);
+
+        // when
+        Header timeZone = new Header("Time-Zone", "America/New_York");
+        ValidatableResponse response = (content == null) ? get(URI + "/content?page=1&size=2", timeZone)
+                : get(URI + "/content?page=1&size=2&inclusion=" + content, timeZone);
+
+        // then
+        response.statusCode(200)
+                .body("hasNext", equalTo(hasNext))
+                .body("accessRules.size()", equalTo(size));
     }
 
     @DisplayName("접근 제한 규칙의 id를 통해 정보를 삭제하고 204를 반환한다.")

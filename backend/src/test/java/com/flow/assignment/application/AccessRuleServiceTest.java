@@ -38,25 +38,9 @@ class AccessRuleServiceTest {
     @Test
     void findAll() {
         // given
-        AccessRule accessRule1 = AccessRule.builder()
-                .startTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
-                .endTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
-                .timeZone("Asia/Seoul")
-                .build();
-        AccessRule accessRule2 = AccessRule.builder()
-                .startTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
-                .endTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
-                .timeZone("Asia/Seoul")
-                .build();
-        AccessRule accessRule3 = AccessRule.builder()
-                .startTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
-                .endTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
-                .timeZone("Asia/Seoul")
-                .build();
-
-        accessRuleRepository.save(accessRule1);
-        accessRuleRepository.save(accessRule2);
-        accessRuleRepository.save(accessRule3);
+        for (int i = 0; i < 3; i++) {
+            saveAccessRule();
+        }
 
         // when
         IpAccessRuleResponses responses = accessRuleService.findAll(new PagingRequest(1, 2), "Asia/Seoul");
@@ -68,5 +52,69 @@ class AccessRuleServiceTest {
                         .containsExactly(3L, 2L)
                         .doesNotContain(1L)
         );
+    }
+
+    @DisplayName("내용 포함 여부를 이용한 조회를 테스트한다. ")
+    @Test
+    void findByContentContaining() {
+        // given
+        String content = "카카오";
+        saveWithContent("구글 IP");
+        saveWithContent(content + "IP");
+        saveWithContent(content + "IP2");
+        saveWithContent(content + "IP3");
+        PagingRequest pagingRequest = new PagingRequest(1, 2);
+
+        // when
+        IpAccessRuleResponses responses = accessRuleService
+                .findByContentContaining(pagingRequest, content, "Asia/Seoul");
+
+        // then
+        assertAll(
+                () -> assertThat(responses.getHasNext()).isTrue(),
+                () -> assertThat(responses.getAccessRules()).extracting("id")
+                        .containsExactly(4L, 3L)
+        );
+    }
+
+    @DisplayName("내용 포함 여부 조회에서 내용이 null일 경우 테스트한다. ")
+    @Test
+    void findByContentContaining_withContentNull() {
+        // given
+        String kakaoIp = "카카오 IP";
+        String googleIp = "구글 IP";
+        saveWithContent(googleIp);
+        saveWithContent(kakaoIp);
+        saveWithContent(kakaoIp + "2");
+        saveWithContent(kakaoIp + "3");
+        PagingRequest pagingRequest = new PagingRequest(2, 2);
+
+        // when
+        IpAccessRuleResponses responses = accessRuleService
+                .findByContentContaining(pagingRequest, null, "Asia/Seoul");
+
+        // then
+        assertAll(
+                () -> assertThat(responses.getHasNext()).isFalse(),
+                () -> assertThat(responses.getAccessRules()).extracting("content")
+                        .containsExactly(kakaoIp, googleIp)
+        );
+    }
+
+    private void saveAccessRule() {
+        accessRuleRepository.save(AccessRule.builder()
+                .startTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
+                .endTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
+                .timeZone("Asia/Seoul")
+                .build());
+    }
+
+    private void saveWithContent(final String content) {
+        accessRuleRepository.save(AccessRule.builder()
+                .startTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
+                .endTime(LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.NOON))
+                .timeZone("Asia/Seoul")
+                .content(content)
+                .build());
     }
 }
