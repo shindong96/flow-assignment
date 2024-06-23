@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    username: flow
+    password: password
+    url: jdbc:mysql://localhost:3306/flow?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+  jpa:
+    hibernate.ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
