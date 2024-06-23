@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 public class AccessRuleAcceptanceTest {
 
     private static final String URI = "/access-rules";
+
     @LocalServerPort
     int port;
 
@@ -99,6 +100,39 @@ public class AccessRuleAcceptanceTest {
         response.statusCode(200)
                 .body("hasNext", equalTo(hasNext))
                 .body("accessRules.size()", equalTo(size));
+    }
+
+    @DisplayName("허용 시간으로 조회하고 200을 반환한다.")
+    @Test
+    void findByPermissionTime() {
+        // given
+        String standardStartTime = "2024/12/24 15:23";
+        String standardEndTime = "2024/12/25 15:25";
+
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("ipAddress", "11.111.111.111");
+        requestBody.put("startTime", standardStartTime);
+        requestBody.put("endTime", standardEndTime);
+        requestBody.put("content", "구글 IP 주소입니다.");
+        post(URI, requestBody);
+
+        requestBody.put("startTime", "2024/12/24 15:24");
+        post(URI, requestBody);
+        requestBody.put("startTime", "2024/12/24 15:25");
+        post(URI, requestBody);
+        requestBody.put("startTime", "2024/12/24 15:21");
+        post(URI, requestBody);
+
+        // when
+        Header timeZone = new Header("Time-Zone", "Asia/Seoul");
+        ValidatableResponse response = get(
+                URI + "/permission?page=1&size=2&startTime=" + standardStartTime + "&endTime=" + standardEndTime,
+                timeZone);
+
+        // then
+        response.statusCode(200)
+                .body("hasNext", equalTo(false))
+                .body("accessRules.size()", equalTo(2));
     }
 
     @DisplayName("접근 제한 규칙의 id를 통해 정보를 삭제하고 204를 반환한다.")

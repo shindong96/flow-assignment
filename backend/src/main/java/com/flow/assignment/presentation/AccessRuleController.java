@@ -3,6 +3,7 @@ package com.flow.assignment.presentation;
 import com.flow.assignment.application.AccessRuleService;
 import com.flow.assignment.dto.request.CreatingAccessRuleRequest;
 import com.flow.assignment.dto.request.PagingRequest;
+import com.flow.assignment.dto.request.PermissionTimeRequest;
 import com.flow.assignment.dto.response.IpAccessRuleResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -48,6 +49,15 @@ public class AccessRuleController {
             final HttpServletRequest request) {
         IpAccessRuleResponses responses = accessRuleService.findByContentContaining(pagingRequest, inclusion,
                 request.getHeader(TIME_ZONE));
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/permission")
+    public ResponseEntity<IpAccessRuleResponses> findByPermissionTime(
+            @ModelAttribute @Valid final PermissionTimeRequest permissionTimeRequest,
+            final HttpServletRequest request) {
+        IpAccessRuleResponses responses = accessRuleService
+                .findByPermissionTime(permissionTimeRequest, request.getHeader(TIME_ZONE));
         return ResponseEntity.ok(responses);
     }
 

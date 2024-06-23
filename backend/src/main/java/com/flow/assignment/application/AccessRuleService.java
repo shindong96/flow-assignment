@@ -4,7 +4,10 @@ import com.flow.assignment.domain.AccessRule;
 import com.flow.assignment.domain.AccessRuleRepository;
 import com.flow.assignment.dto.request.CreatingAccessRuleRequest;
 import com.flow.assignment.dto.request.PagingRequest;
+import com.flow.assignment.dto.request.PermissionTimeRequest;
 import com.flow.assignment.dto.response.IpAccessRuleResponses;
+import com.flow.assignment.support.TimeZoneConverter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +68,22 @@ public class AccessRuleService {
         return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
     }
 
+    @Transactional(readOnly = true)
+    public IpAccessRuleResponses findByPermissionTime(final PermissionTimeRequest request, final String timeZone) {
+        LocalDateTime startTime = request.getStartTime();
+        LocalDateTime endTime = request.getEndTime();
+        validateStartIsGreaterThanEqualEnd(startTime, endTime);
+        LocalDateTime startTimeAtGMT = TimeZoneConverter.convert(startTime, timeZone, GMT_TIME_ZONE);
+        LocalDateTime endTimeAtGMT = TimeZoneConverter.convert(endTime, timeZone, GMT_TIME_ZONE);
+
+        Slice<AccessRule> rules = accessRuleRepository.findByPermissionTime(startTimeAtGMT, endTimeAtGMT,
+                PageRequest.of(request.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, request.getSize()
+                        , SORT_DIRECTION_DESC_BY_ID));
+
+        List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
+        return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
+    }
+
     public void deleteById(final Long id) {
         accessRuleRepository.deleteById(id);
     }
@@ -73,5 +92,15 @@ public class AccessRuleService {
         return rules.stream()
                 .map(accessRule -> accessRule.convertTimeZone(timeZone))
                 .collect(Collectors.toList());
+    }
+
+    private void validateStartIsGreaterThanEqualEnd(final LocalDateTime start, final LocalDateTime end) {
+        if (start == null || end == null) {
+            return;
+        }
+
+        if (start.isAfter(end)) {
+            throw new IllegalArgumentException("PERMISSION_TiME_001||기간의 입력이 잘못되었습니다.");
+        }
     }
 }

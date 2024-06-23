@@ -34,4 +34,13 @@ public class ControllerAdvice {
                 .body(new ErrorResponse(errorCodeAndMessage[METHOD_ARGUMENT_NOT_VALID_EXCEPTION_ERROR_INDEX],
                         errorCodeAndMessage[METHOD_ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE_INDEX]));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        String[] errorCodeAndMessage = e.getMessage().split(METHOD_ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE_CODE_DELIMITER);
+
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(errorCodeAndMessage[METHOD_ARGUMENT_NOT_VALID_EXCEPTION_ERROR_INDEX],
+                        errorCodeAndMessage[METHOD_ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE_INDEX]));
+    }
 }
