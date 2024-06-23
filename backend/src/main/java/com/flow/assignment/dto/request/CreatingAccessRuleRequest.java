@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @Getter
 public class CreatingAccessRuleRequest {
 
-    @ValidIpAddress
-    @NotBlank
+    @ValidIpAddress(message = "IP_ADDRESS_001||IPv4나 IPv6 형식에 맞게 입력하여야 합니다.")
+    @NotBlank(message = "IP_ADDRESS_002||IP 주소는 공백일 수 없습니다.")
     private String ipAddress;
 
     private LocalDateTime startTime;

@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 @SpringBootTest(properties = "spring.session.store-type=none", webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class AccessRuleAcceptance {
+public class AccessRuleAcceptanceTest {
 
     private static final String URI = "/access-rules";
     @LocalServerPort
