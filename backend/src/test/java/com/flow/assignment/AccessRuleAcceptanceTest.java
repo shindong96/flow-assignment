@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 public class AccessRuleAcceptanceTest {
 
     private static final String URI = "/access-rules";
+    private static final String TIME_ZONE = "Time-Zone";
 
     @LocalServerPort
     int port;
@@ -67,7 +68,7 @@ public class AccessRuleAcceptanceTest {
         post(URI, requestBody);
 
         // when
-        ValidatableResponse response = get(URI + "?page=1&size=2", new Header("Time-Zone", "America/New_York"));
+        ValidatableResponse response = get(URI + "?page=1&size=2", new Header(TIME_ZONE, "America/New_York"));
 
         // then
         response.statusCode(200)
@@ -124,7 +125,7 @@ public class AccessRuleAcceptanceTest {
         post(URI, requestBody);
 
         // when
-        Header timeZone = new Header("Time-Zone", "Asia/Seoul");
+        Header timeZone = new Header(TIME_ZONE, "Asia/Seoul");
         ValidatableResponse response = get(
                 URI + "/permission?page=1&size=2&startTime=" + standardStartTime + "&endTime=" + standardEndTime,
                 timeZone);
@@ -158,7 +159,7 @@ public class AccessRuleAcceptanceTest {
 
     private ValidatableResponse post(final String uri, final Object requestBody) {
         return RestAssured.given().log().all()
-                .header(new Header("Time-Zone", "Asia/Seoul"))
+                .header(new Header(TIME_ZONE, "Asia/Seoul"))
                 .body(requestBody)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .accept(MediaType.APPLICATION_JSON_VALUE)
