@@ -3,16 +3,9 @@ import React, { useState } from "react";
 import {useMutation} from "@tanstack/react-query"
 import { useQuery } from '@tanstack/react-query';
 import Pagination from "react-js-pagination";
-
-const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const formatDateTime = (dateTime) => {
-  if (dateTime === "") return "";
-  const dateTimeArr = dateTime.split("T");
-  const newDateTime =
-    dateTimeArr[0].replaceAll("-", "/") + " " + dateTimeArr[1];
-
-  return newDateTime;
-};
+import Modal from './component/Modal';
+import formatDateTime from './util/formatDateTIme';
+import { deleteRules, getContentRules, getPermissionRules, getRules } from './api/handlers';
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,31 +22,11 @@ function App() {
 
   const { isFetching, data, refetch } = useQuery({
     queryKey: ["getList", page],
-    queryFn: async () => {
-      const res = await fetch(
-        `http://43.202.226.27:8080/access-rules?page=${page}&size=100`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Time-Zone": timezone,
-          },
-        }
-      );
-      return res.json();
-    },
+    queryFn: () => getRules(page),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      return await fetch(`http://43.202.226.27:8080/access-rules/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "Time-Zone": timezone,
-        },
-      });
-    },
+    mutationFn: (id) => deleteRules(id),
     onSuccess: () => {if (searchType === "content") {
         getContentMutation.mutate(page);
         return;
@@ -70,20 +43,7 @@ function App() {
   const [searchData, setSearchData] = useState(null);
 
   const getContentMutation = useMutation({
-    mutationFn: async (selectedPage) => {
-      const res = await fetch(
-        `http://43.202.226.27:8080/access-rules/content?page=${selectedPage}&size=100&inclusion=${contentValue}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Time-Zone": timezone,
-          },
-        }
-      );
-
-      return res.json();
-    },
+    mutationFn: (selectedPage) => getContentRules(selectedPage, contentValue),
     onSuccess: (data) => {
       setSearchType("content");
       setStartTime("");
@@ -94,23 +54,8 @@ function App() {
   });
 
   const getPermissionMutation = useMutation({
-    mutationFn: async (selectedPage) => {
-      const start = formatDateTime(startTime);
-      const end = formatDateTime(endTime);
-
-      const res = await fetch(
-        `http://43.202.226.27:8080/access-rules/permission?page=${selectedPage}&size=100&startTime=${start}&endTime=${end}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Time-Zone": timezone,
-          },
-        }
-      );
-
-      return res.json();
-    },
+    mutationFn: (selectedPage) =>
+      getPermissionRules(startTime, endTime, selectedPage),
     onSuccess: (data) => {
       setSearchType("permission");
       setContentValue("");
@@ -239,103 +184,3 @@ function App() {
 }
 
 export default App;
-
-const Modal = ({ handleClose, refetch }) => {
-  const [currentIp, setCurrentIp] = useState("");
-  const [content, setContent] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-
-  const currentIpMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("https://api64.ipify.org?format=json");
-      return await response.json();
-    },
-    onSuccess: (data) => setCurrentIp(data.ip),
-    onError: (error) => console.error("Error fetching IP address:", error),
-  });
-
-  const saveIpMutation = useMutation({
-    mutationFn: (data) => {
-
-      return fetch("http://43.202.226.27:8080/access-rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Time-Zone": timezone,
-        },
-        body: JSON.stringify(data),
-      });
-    },
-    onSuccess: () => {
-      refetch();
-      handleClose();
-    },
-    onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
-  });
-
-  const handleSave = () => {
-    const newStartTime = formatDateTime(startTime);
-    const newEndTime = formatDateTime(endTime);
-
-    const data = {
-      ipAddress: currentIp,
-      content: content,
-      startTime: newStartTime,
-      endTime: newEndTime,
-    };
-
-    saveIpMutation.mutate(data);
-  };
-
-  return (
-    <div className="modalLayout">
-      <div className="modalContent">
-        <div className="modalContentContainer">
-          <div className="modalTitle">IP 추가</div>
-
-          <div className="modalInputContainer">
-            <div className="modalInputItemContainer">
-              <label>IP 주소</label>
-              <input
-                value={currentIp}
-                onChange={(e) => setCurrentIp(e.target.value)}
-              />
-              <button onClick={() => currentIpMutation.mutate()}>
-                현재 IP 불러오기
-              </button>
-            </div>
-            <div className="modalInputItemContainer">
-              <label>설명</label>
-              <input
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-              />
-            </div>
-            <div className="modalInputItemContainer">
-              <label>허용 시작 시간</label>
-              <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </div>
-            <div className="modalInputItemContainer">
-              <label>허용 끝 시간</label>
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="buttonContainer">
-            <button onClick={handleSave}>저장</button>
-            <button onClick={handleClose}>취소</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
