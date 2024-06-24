@@ -8,6 +8,8 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [contentValue, setContentValue] = useState("");
+
   function handleCloseModal(){
     setIsModalOpen(false);
   }
@@ -43,6 +45,27 @@ function App() {
     onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
   });
 
+  const [searchData, setSearchData] = useState(null);
+
+  const getContentMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(
+        `http://localhost:8080/access-rules/content?page=1&size=100&inclusion=${contentValue}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Time-Zone": timezone,
+          },
+        }
+      );
+
+      return res.json();
+    },
+    onSuccess: (data) => setSearchData(data),
+    onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
+  });
+
   return (
     <>
       <div className = "container">
@@ -53,8 +76,10 @@ function App() {
         <div className="bodyContainer">
           <div className="searchContainer">
             <div className="contentSearchingContainer">
-              <input placeholder="내용 검색.."/>
-              <button>검색</button>
+              <input placeholder="내용 검색.." 
+                value={contentValue}
+                onChange={(e) => setContentValue(e.target.value)}/>
+              <button onClick={() => getContentMutation.mutate()}>검색</button>
             </div>
             <div className="permissionTimeSearchingContainer">
               <input placeholder="사용 시작 시간"/>
@@ -64,28 +89,57 @@ function App() {
           </div>
           <div className="tableContainer">
             <table>
-              <tr>
-                <th>IP 주소</th>
-                <th>내용</th>
-                <th>사용 시작 시간</th>
-                <th>사용 끝 시간</th>
-                <th></th>
-              </tr>
-               {!isFetching &&
-                data &&
-                data.accessRules.map((e) => {
-                  return (
-                    <tr key={e.id}>
-                      <td>{e.ipAddress}</td>
-                      <td>{e.content}</td>
-                      <td>{e.startTime}</td>
-                      <td>{e.endTime}</td>
-                      <td>
-                        <button onClick={() => deleteMutation.mutate(e.id)}>delete</button>
-                      </td>
-                    </tr>
-                  );
-                })}
+              <thead>
+                <tr>
+                  <th>IP 주소</th>
+                  <th>내용</th>
+                  <th>사용 시작 시간</th>
+                  <th>사용 끝 시간</th>
+                  <th></th>
+                </tr>
+              </thead>
+            
+              <tbody>
+                {searchData ? (
+                  searchData.accessRules.map((e) => {
+                    return (
+                      <tr key={e.id}>
+                        <td>{e.ipAddress}</td>
+                        <td>{e.content}</td>
+                        <td>{e.startTime}</td>
+                        <td>{e.endTime}</td>
+                        <td>
+                          <button onClick={() => deleteMutation.mutate(e.id)}>
+                            delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <>
+                    {!isFetching &&
+                      data &&
+                      data.accessRules.map((e) => {
+                        return (
+                          <tr key={e.id}>
+                            <td>{e.ipAddress}</td>
+                            <td>{e.content}</td>
+                            <td>{e.startTime}</td>
+                            <td>{e.endTime}</td>
+                            <td>
+                              <button
+                                onClick={() => deleteMutation.mutate(e.id)}
+                              >
+                                delete
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </>
+                )}
+              </tbody>
             </table>
           </div>
         </div>
