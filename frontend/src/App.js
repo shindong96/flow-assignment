@@ -2,9 +2,11 @@ import './App.css';
 import React, { useState } from "react"; 
 import {useMutation} from "@tanstack/react-query"
 import { useQuery } from '@tanstack/react-query';
+import Pagination from "react-js-pagination";
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const formatDateTime = (dateTime) => {
+  if (dateTime === "") return "";
   const dateTimeArr = dateTime.split("T");
   const newDateTime =
     dateTimeArr[0].replaceAll("-", "/") + " " + dateTimeArr[1];
@@ -17,6 +19,7 @@ function App() {
   const [contentValue, setContentValue] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [page, setPage] = useState(1);
 
   const [searchType, setSearchType] = useState("all");
 
@@ -25,10 +28,10 @@ function App() {
   }
 
   const { isFetching, data, refetch } = useQuery({
-    queryKey: ["getList"],
+    queryKey: ["getList", page],
     queryFn: async () => {
       const res = await fetch(
-        "http://43.202.226.27:8080/access-rules?page=1&size=100",
+        `http://43.202.226.27:8080/access-rules?page=${page}&size=100`,
         {
           method: "GET",
           headers: {
@@ -52,11 +55,11 @@ function App() {
       });
     },
     onSuccess: () => {if (searchType === "content") {
-        getContentMutation.mutate();
+        getContentMutation.mutate(page);
         return;
       }
       if (searchType === "permission") {
-        getPermissionMutation.mutate();
+        getPermissionMutation.mutate(page);
         return;
       }
       refetch();
@@ -67,9 +70,9 @@ function App() {
   const [searchData, setSearchData] = useState(null);
 
   const getContentMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (selectedPage) => {
       const res = await fetch(
-        `http://43.202.226.27:8080/access-rules/content?page=1&size=100&inclusion=${contentValue}`,
+        `http://43.202.226.27:8080/access-rules/content?page=${selectedPage}&size=100&inclusion=${contentValue}`,
         {
           method: "GET",
           headers: {
@@ -91,12 +94,12 @@ function App() {
   });
 
   const getPermissionMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (selectedPage) => {
       const start = formatDateTime(startTime);
       const end = formatDateTime(endTime);
 
       const res = await fetch(
-        `http://43.202.226.27:8080/access-rules/permission?page=1&size=100&startTime=${start}&endTime=${end}`,
+        `http://43.202.226.27:8080/access-rules/permission?page=${selectedPage}&size=100&startTime=${start}&endTime=${end}`,
         {
           method: "GET",
           headers: {
@@ -129,7 +132,10 @@ function App() {
               <input placeholder="내용 검색.." 
                 value={contentValue}
                 onChange={(e) => setContentValue(e.target.value)}/>
-              <button onClick={() => getContentMutation.mutate()}>검색</button>
+              <button onClick={() => {
+                  setPage(1);
+                  getContentMutation.mutate(1);
+                }}>검색</button>
             </div>
             <div className="permissionTimeSearchingContainer">
             <input
@@ -145,7 +151,8 @@ function App() {
                 onChange={(e) => setEndTime(e.target.value)}
               />
               <button onClick={() => {
-                  getPermissionMutation.mutate();
+                  setPage(1);
+                  getPermissionMutation.mutate(1);
                 }}>검색</button>
             </div>
           </div>
@@ -204,6 +211,26 @@ function App() {
               </tbody>
             </table>
           </div>
+          {(searchData ||
+            data) && (
+              <Pagination
+                activePage={page}
+                itemsCountPerPage={100}
+                totalItemsCount={
+                  searchData ? searchData.totalCount : data.totalCount
+                }
+                pageRangeDisplayed={1}
+                onChange={(page) => {
+                  if (searchType === "permission") {
+                    getPermissionMutation.mutate(page);
+                  }
+                  if (searchType === "content") {
+                    getContentMutation.mutate(page);
+                  }
+                  setPage(page);
+                }}
+              ></Pagination>
+            )}
         </div>
       </div>
       {isModalOpen && <Modal handleClose={handleCloseModal} refetch={refetch}/>}
