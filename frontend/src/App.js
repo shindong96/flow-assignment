@@ -27,7 +27,7 @@ function App() {
     queryKey: ["getList"],
     queryFn: async () => {
       const res = await fetch(
-        "http://localhost:8080/access-rules?page=1&size=100",
+        "http://43.202.226.27:8080/access-rules?page=1&size=100",
         {
           method: "GET",
           headers: {
@@ -42,7 +42,7 @@ function App() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
-      return await fetch(`http://localhost:8080/access-rules/${id}`, {
+      return await fetch(`http://43.202.226.27:8080/access-rules/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -59,7 +59,7 @@ function App() {
   const getContentMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(
-        `http://localhost:8080/access-rules/content?page=1&size=100&inclusion=${contentValue}`,
+        `http://43.202.226.27:8080/access-rules/content?page=1&size=100&inclusion=${contentValue}`,
         {
           method: "GET",
           headers: {
@@ -81,7 +81,7 @@ function App() {
       const end = formatDateTime(endTime);
 
       const res = await fetch(
-        `http://localhost:8080/access-rules/permission?page=1&size=100&startTime=${start}&endTime=${end}`,
+        `http://43.202.226.27:8080/access-rules/permission?page=1&size=100&startTime=${start}&endTime=${end}`,
         {
           method: "GET",
           headers: {
@@ -215,7 +215,7 @@ const Modal = ({ handleClose }) => {
   const saveIpMutation = useMutation({
     mutationFn: (data) => {
 
-      return fetch("http://localhost:8080/access-rules", {
+      return fetch("http://43.202.226.27:8080/access-rules", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
