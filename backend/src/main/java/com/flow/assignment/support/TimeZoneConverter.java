@@ -2,6 +2,7 @@ package com.flow.assignment.support;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.zone.ZoneRulesException;
 
 public class TimeZoneConverter {
 
@@ -9,12 +10,16 @@ public class TimeZoneConverter {
         if (dateTime == null) {
             return dateTime;
         }
-        
-        ZoneId fromZoneId = ZoneId.of(fromZone);
-        ZoneId toZoneId = ZoneId.of(toZone);
 
-        return dateTime.atZone(fromZoneId)
-                .withZoneSameInstant(toZoneId)
-                .toLocalDateTime();
+        try {
+            ZoneId fromZoneId = ZoneId.of(fromZone);
+            ZoneId toZoneId = ZoneId.of(toZone);
+
+            return dateTime.atZone(fromZoneId)
+                    .withZoneSameInstant(toZoneId)
+                    .toLocalDateTime();
+        } catch (ZoneRulesException e) {
+            throw new IllegalArgumentException(ErrorCode.TIME_ZONE_RULE);
+        }
     }
 }

@@ -6,6 +6,7 @@ import com.flow.assignment.dto.request.CreatingAccessRuleRequest;
 import com.flow.assignment.dto.request.PagingRequest;
 import com.flow.assignment.dto.request.PermissionTimeRequest;
 import com.flow.assignment.dto.response.IpAccessRuleResponses;
+import com.flow.assignment.support.ErrorCode;
 import com.flow.assignment.support.TimeZoneConverter;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +31,7 @@ public class AccessRuleService {
     private final AccessRuleRepository accessRuleRepository;
 
     public Long save(final CreatingAccessRuleRequest request, final String timeZone) {
+        checkTimeZone(timeZone);
         AccessRule accessRule = AccessRule.builder()
                 .ipAddress(request.getIpAddress())
                 .startTime(request.getStartTime())
@@ -45,6 +47,7 @@ public class AccessRuleService {
 
     @Transactional(readOnly = true)
     public IpAccessRuleResponses findAll(final PagingRequest pagingRequest, final String timeZone) {
+        checkTimeZone(timeZone);
         Slice<AccessRule> rules = accessRuleRepository.findAll(
                 PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()
                         , SORT_DIRECTION_DESC_BY_ID));
@@ -56,6 +59,7 @@ public class AccessRuleService {
     @Transactional(readOnly = true)
     public IpAccessRuleResponses findByContentContaining(final PagingRequest pagingRequest, final String content,
                                                          final String timeZone) {
+        checkTimeZone(timeZone);
         if (content == null) {
             return findAll(pagingRequest, timeZone);
         }
@@ -70,13 +74,15 @@ public class AccessRuleService {
 
     @Transactional(readOnly = true)
     public IpAccessRuleResponses findByPermissionTime(final PermissionTimeRequest request, final String timeZone) {
+        checkTimeZone(timeZone);
+
         LocalDateTime startTime = request.getStartTime();
         LocalDateTime endTime = request.getEndTime();
         validateStartIsGreaterThanEqualEnd(startTime, endTime);
-        LocalDateTime startTimeAtGMT = TimeZoneConverter.convert(startTime, timeZone, GMT_TIME_ZONE);
-        LocalDateTime endTimeAtGMT = TimeZoneConverter.convert(endTime, timeZone, GMT_TIME_ZONE);
 
-        Slice<AccessRule> rules = accessRuleRepository.findByPermissionTime(startTimeAtGMT, endTimeAtGMT,
+        Slice<AccessRule> rules = accessRuleRepository.findByPermissionTime(
+                TimeZoneConverter.convert(startTime, timeZone, GMT_TIME_ZONE),
+                TimeZoneConverter.convert(endTime, timeZone, GMT_TIME_ZONE),
                 PageRequest.of(request.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, request.getSize()
                         , SORT_DIRECTION_DESC_BY_ID));
 
@@ -86,6 +92,12 @@ public class AccessRuleService {
 
     public void deleteById(final Long id) {
         accessRuleRepository.deleteById(id);
+    }
+
+    private void checkTimeZone(final String timeZone) {
+        if (timeZone == null) {
+            throw new IllegalArgumentException(ErrorCode.TIME_ZONE_NOT_NULL);
+        }
     }
 
     private List<AccessRule> convertTimeZone(final List<AccessRule> rules, final String timeZone) {
@@ -100,7 +112,7 @@ public class AccessRuleService {
         }
 
         if (start.isAfter(end)) {
-            throw new IllegalArgumentException("PERMISSION_TiME_001||기간의 입력이 잘못되었습니다.");
+            throw new IllegalArgumentException(ErrorCode.PERMISSION_TIME_RULE);
         }
     }
 }
