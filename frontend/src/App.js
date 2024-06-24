@@ -219,7 +219,7 @@ function App() {
                 totalItemsCount={
                   searchData ? searchData.totalCount : data.totalCount
                 }
-                pageRangeDisplayed={1}
+                pageRangeDisplayed={10}
                 onChange={(page) => {
                   if (searchType === "permission") {
                     getPermissionMutation.mutate(page);
