@@ -4,16 +4,17 @@ import React, { useState } from "react";
 import {useMutation} from "@tanstack/react-query"
 import { useQuery } from '@tanstack/react-query';
 
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   function handleCloseModal(){
     setIsModalOpen(false);
   }
 
-  const { isFetching, data } = useQuery({
+  const { isFetching, data, refetch } = useQuery({
     queryKey: ["getList"],
     queryFn: async () => {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const res = await fetch(
         "http://localhost:8080/access-rules?page=1&size=100",
         {
@@ -26,6 +27,20 @@ function App() {
       );
       return res.json();
     },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      return await fetch(`http://localhost:8080/access-rules/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Time-Zone": timezone,
+        },
+      });
+    },
+    onSuccess: () => refetch(),
+    onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
   });
 
   return (
@@ -66,7 +81,7 @@ function App() {
                       <td>{e.startTime}</td>
                       <td>{e.endTime}</td>
                       <td>
-                        <button>delete</button>
+                        <button onClick={() => deleteMutation.mutate(e.id)}>delete</button>
                       </td>
                     </tr>
                   );
