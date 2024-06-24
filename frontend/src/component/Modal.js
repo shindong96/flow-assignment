@@ -10,7 +10,7 @@ const Modal = ({ handleClose, refetch }) => {
 
   const currentIpMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("https://api.ipify.org?format=json");
+      const response = await fetch("https://api64.ipify.org?format=json");
       return await response.json();
     },
     onSuccess: (data) => setCurrentIp(data.ip),
