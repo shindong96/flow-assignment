@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import React, { useState } from "react"; 
+import {useMutation} from "@tanstack/react-query"
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,8 +63,52 @@ const Modal = ({ handleClose }) => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
+  const currentIpMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("https://api.ipify.org?format=json");
+      return await response.json();
+    },
+    onSuccess: (data) => setCurrentIp(data.ip),
+    onError: (error) => console.error("Error fetching IP address:", error),
+  });
+
+  const saveIpMutation = useMutation({
+    mutationFn: (data) => {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      return fetch("http://43.202.226.27:8080/access-rules", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Time-Zone": timezone,
+        },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => handleClose(),
+    onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
+  });
+
+  const formatDateTime = (dateTime) => {
+    const dateTimeArr = dateTime.split("T");
+    const newDateTime =
+      dateTimeArr[0].replaceAll("-", "/") + " " + dateTimeArr[1];
+
+    return newDateTime;
+  };
+
   const handleSave = () => {
-    console.log(currentIp);
+    const newStartTime = formatDateTime(startTime);
+    const newEndTime = formatDateTime(endTime);
+
+    const data = {
+      ipAddress: currentIp,
+      content: content,
+      startTime: newStartTime,
+      endTime: newEndTime,
+    };
+
+    saveIpMutation.mutate(data);
   };
 
   return (
@@ -78,21 +123,22 @@ const Modal = ({ handleClose }) => {
               <input
                 value={currentIp}
                 onChange={(e) => setCurrentIp(e.target.value)}
-                placeholder='000.000.000.000'
               />
-              <button>현재 IP 불러오기</button>
+              <button onClick={() => currentIpMutation.mutate()}>
+                현재 IP 불러오기
+              </button>
             </div>
             <div className="modalInputItemContainer">
               <label>설명</label>
               <input
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder='IP 주소의 내용을 작성해주세요'
               />
             </div>
             <div className="modalInputItemContainer">
               <label>허용 시작 시간</label>
               <input
+                type="datetime-local"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
               />
@@ -100,6 +146,7 @@ const Modal = ({ handleClose }) => {
             <div className="modalInputItemContainer">
               <label>허용 끝 시간</label>
               <input
+                type="datetime-local"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
               />
