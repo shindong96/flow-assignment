@@ -5,10 +5,19 @@ import {useMutation} from "@tanstack/react-query"
 import { useQuery } from '@tanstack/react-query';
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const formatDateTime = (dateTime) => {
+  const dateTimeArr = dateTime.split("T");
+  const newDateTime =
+    dateTimeArr[0].replaceAll("-", "/") + " " + dateTimeArr[1];
+
+  return newDateTime;
+};
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [contentValue, setContentValue] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
 
   function handleCloseModal(){
     setIsModalOpen(false);
@@ -66,6 +75,31 @@ function App() {
     onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
   });
 
+  const getPermissionMutation = useMutation({
+    mutationFn: async () => {
+      const start = formatDateTime(startTime);
+      const end = formatDateTime(endTime);
+
+      const res = await fetch(
+        `http://localhost:8080/access-rules/permission?page=1&size=100&startTime=${start}&endTime=${end}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Time-Zone": timezone,
+          },
+        }
+      );
+
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setContentValue("");
+      setSearchData(data);
+    },
+    onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
+  });
+
   return (
     <>
       <div className = "container">
@@ -82,9 +116,21 @@ function App() {
               <button onClick={() => getContentMutation.mutate()}>검색</button>
             </div>
             <div className="permissionTimeSearchingContainer">
-              <input placeholder="사용 시작 시간"/>
-              <input placeholder="사용 끝 시간"/>
-              <button>검색</button>
+            <input
+                placeholder="시작 시간"
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
+              <input
+                placeholder="끝 시간"
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
+              <button onClick={() => {
+                  getPermissionMutation.mutate();
+                }}>검색</button>
             </div>
           </div>
           <div className="tableContainer">
@@ -159,7 +205,7 @@ const Modal = ({ handleClose }) => {
 
   const currentIpMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("https://api.ipify.org?format=json");
+      const response = await fetch("https://api64.ipify.org?format=json");
       return await response.json();
     },
     onSuccess: (data) => setCurrentIp(data.ip),
@@ -168,7 +214,6 @@ const Modal = ({ handleClose }) => {
 
   const saveIpMutation = useMutation({
     mutationFn: (data) => {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
       return fetch("http://localhost:8080/access-rules", {
         method: "POST",
@@ -182,14 +227,6 @@ const Modal = ({ handleClose }) => {
     onSuccess: () => handleClose(),
     onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
   });
-
-  const formatDateTime = (dateTime) => {
-    const dateTimeArr = dateTime.split("T");
-    const newDateTime =
-      dateTimeArr[0].replaceAll("-", "/") + " " + dateTimeArr[1];
-
-    return newDateTime;
-  };
 
   const handleSave = () => {
     const newStartTime = formatDateTime(startTime);
