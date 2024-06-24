@@ -2,12 +2,31 @@ import logo from './logo.svg';
 import './App.css';
 import React, { useState } from "react"; 
 import {useMutation} from "@tanstack/react-query"
+import { useQuery } from '@tanstack/react-query';
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   function handleCloseModal(){
     setIsModalOpen(false);
   }
+
+  const { isFetching, data } = useQuery({
+    queryKey: ["getList"],
+    queryFn: async () => {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const res = await fetch(
+        "http://localhost:8080/access-rules?page=1&size=100",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Time-Zone": timezone,
+          },
+        }
+      );
+      return res.json();
+    },
+  });
 
   return (
     <>
@@ -37,15 +56,21 @@ function App() {
                 <th>사용 끝 시간</th>
                 <th></th>
               </tr>
-              <tr>
-                <td>일반칸1</td>
-                <td>일반칸2</td>
-                <td>일반칸3</td>
-                <td>일반칸3</td>
-                <td>
-                  <button>delete</button>
-                </td>
-              </tr>
+               {!isFetching &&
+                data &&
+                data.accessRules.map((e) => {
+                  return (
+                    <tr key={e.id}>
+                      <td>{e.ipAddress}</td>
+                      <td>{e.content}</td>
+                      <td>{e.startTime}</td>
+                      <td>{e.endTime}</td>
+                      <td>
+                        <button>delete</button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </table>
           </div>
         </div>
@@ -76,7 +101,7 @@ const Modal = ({ handleClose }) => {
     mutationFn: (data) => {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      return fetch("http://43.202.226.27:8080/access-rules", {
+      return fetch("http://localhost:8080/access-rules", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
