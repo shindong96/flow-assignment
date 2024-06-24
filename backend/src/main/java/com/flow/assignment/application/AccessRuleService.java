@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
@@ -48,12 +48,12 @@ public class AccessRuleService {
     @Transactional(readOnly = true)
     public IpAccessRuleResponses findAll(final PagingRequest pagingRequest, final String timeZone) {
         checkTimeZone(timeZone);
-        Slice<AccessRule> rules = accessRuleRepository.findAll(
+        Page<AccessRule> rules = accessRuleRepository.findAll(
                 PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()
                         , SORT_DIRECTION_DESC_BY_ID));
 
         List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
-        return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
+        return IpAccessRuleResponses.of(rules.getTotalElements(), convertedTimeRules);
     }
 
     @Transactional(readOnly = true)
@@ -64,12 +64,12 @@ public class AccessRuleService {
             return findAll(pagingRequest, timeZone);
         }
 
-        Slice<AccessRule> rules = accessRuleRepository.findByContentContaining(content,
+        Page<AccessRule> rules = accessRuleRepository.findByContentContaining(content,
                 PageRequest.of(pagingRequest.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, pagingRequest.getSize()
                         , SORT_DIRECTION_DESC_BY_ID));
 
         List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
-        return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
+        return IpAccessRuleResponses.of(rules.getTotalElements(), convertedTimeRules);
     }
 
     @Transactional(readOnly = true)
@@ -80,14 +80,14 @@ public class AccessRuleService {
         LocalDateTime endTime = request.getEndTime();
         validateStartIsGreaterThanEqualEnd(startTime, endTime);
 
-        Slice<AccessRule> rules = accessRuleRepository.findByPermissionTime(
+        Page<AccessRule> rules = accessRuleRepository.findByPermissionTime(
                 TimeZoneConverter.convert(startTime, timeZone, GMT_TIME_ZONE),
                 TimeZoneConverter.convert(endTime, timeZone, GMT_TIME_ZONE),
                 PageRequest.of(request.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, request.getSize()
                         , SORT_DIRECTION_DESC_BY_ID));
 
         List<AccessRule> convertedTimeRules = convertTimeZone(rules.getContent(), timeZone);
-        return IpAccessRuleResponses.of(rules.hasNext(), convertedTimeRules);
+        return IpAccessRuleResponses.of(rules.getTotalElements(), convertedTimeRules);
     }
 
     public void deleteById(final Long id) {

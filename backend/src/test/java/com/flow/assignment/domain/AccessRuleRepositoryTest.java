@@ -12,8 +12,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 
@@ -25,8 +25,8 @@ class AccessRuleRepositoryTest {
 
     @DisplayName("content 포함 여부로 조회를 검증한다.")
     @ParameterizedTest
-    @CsvSource(value = {"구글,false,1", "카카오,false,2", "네이버,true,2"})
-    void findByContentContaining(String content, boolean hasNext, int size) {
+    @CsvSource(value = {"구글,1,1", "카카오,2,2", "네이버,3,2"})
+    void findByContentContaining(String content, long totalCount, int size) {
         // given
         saveWithContent("구글 IP");
         saveWithContent("카카오엔터 IP");
@@ -37,11 +37,11 @@ class AccessRuleRepositoryTest {
         PageRequest pageRequest = PageRequest.of(0, 2, Sort.by(Direction.DESC, "id"));
 
         // when
-        Slice<AccessRule> results = repository.findByContentContaining(content, pageRequest);
+        Page<AccessRule> results = repository.findByContentContaining(content, pageRequest);
 
         // then
         assertAll(
-                () -> assertThat(results.hasNext()).isEqualTo(hasNext),
+                () -> assertThat(results.getTotalElements()).isEqualTo(totalCount),
                 () -> assertThat(results.getContent()).hasSize(size)
         );
     }
@@ -60,12 +60,12 @@ class AccessRuleRepositoryTest {
         PageRequest pageRequest = PageRequest.of(0, 2, Sort.by(Direction.DESC, "id"));
 
         // when
-        Slice<AccessRule> results = repository
+        Page<AccessRule> results = repository
                 .findByPermissionTime(permissionStartTime, permissionEndTime, pageRequest);
 
         // then
         assertAll(
-                () -> assertThat(results.hasNext()).isEqualTo(true),
+                () -> assertThat(results.getTotalElements()).isEqualTo(3),
                 () -> assertThat(results.getContent()).extracting("id")
                         .containsExactly(success3, success2)
         );

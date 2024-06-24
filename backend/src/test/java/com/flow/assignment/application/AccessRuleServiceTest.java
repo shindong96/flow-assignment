@@ -47,7 +47,7 @@ class AccessRuleServiceTest {
 
         // then
         assertAll(
-                () -> assertThat(responses.getHasNext()).isTrue(),
+                () -> assertThat(responses.getTotalCount()).isEqualTo(3L),
                 () -> assertThat(responses.getAccessRules()).extracting("id")
                         .containsExactly(3L, 2L)
                         .doesNotContain(1L)
@@ -71,7 +71,7 @@ class AccessRuleServiceTest {
 
         // then
         assertAll(
-                () -> assertThat(responses.getHasNext()).isTrue(),
+                () -> assertThat(responses.getTotalCount()).isEqualTo(3L),
                 () -> assertThat(responses.getAccessRules()).extracting("id")
                         .containsExactly(4L, 3L)
         );
@@ -95,7 +95,7 @@ class AccessRuleServiceTest {
 
         // then
         assertAll(
-                () -> assertThat(responses.getHasNext()).isFalse(),
+                () -> assertThat(responses.getTotalCount()).isEqualTo(4L),
                 () -> assertThat(responses.getAccessRules()).extracting("content")
                         .containsExactly(kakaoIp, googleIp)
         );

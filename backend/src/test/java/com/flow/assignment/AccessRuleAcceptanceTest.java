@@ -72,14 +72,14 @@ public class AccessRuleAcceptanceTest {
 
         // then
         response.statusCode(200)
-                .body("hasNext", equalTo(false))
+                .body("totalCount", equalTo(1))
                 .body("accessRules.size()", equalTo(1));
     }
 
     @DisplayName("특정 content를 포함하는 ip 규칙을 조회하고 200을 반환한다.")
     @ParameterizedTest
-    @CsvSource(value = {"카카오,false,2", ",true,2", "구글,false,1"})
-    void findByContentContaining(String content, boolean hasNext, int size) {
+    @CsvSource(value = {"카카오,2,2", ",3,2", "구글,1,1"})
+    void findByContentContaining(String content, int totalCount, int size) {
         // given
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("ipAddress", "11.111.111.111");
@@ -99,7 +99,7 @@ public class AccessRuleAcceptanceTest {
 
         // then
         response.statusCode(200)
-                .body("hasNext", equalTo(hasNext))
+                .body("totalCount", equalTo(totalCount))
                 .body("accessRules.size()", equalTo(size));
     }
 
@@ -132,7 +132,7 @@ public class AccessRuleAcceptanceTest {
 
         // then
         response.statusCode(200)
-                .body("hasNext", equalTo(false))
+                .body("totalCount", equalTo(2))
                 .body("accessRules.size()", equalTo(2));
     }
 

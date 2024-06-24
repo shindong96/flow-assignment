@@ -12,16 +12,16 @@ import lombok.RequiredArgsConstructor;
 @Builder
 public class IpAccessRuleResponses {
 
-    private final Boolean hasNext;
+    private final Long totalCount;
     private final List<IpAccessRuleResponse> accessRules;
 
-    public static IpAccessRuleResponses of(final boolean hasNext, final List<AccessRule> rules) {
+    public static IpAccessRuleResponses of(final long totalCount, final List<AccessRule> rules) {
         return IpAccessRuleResponses.builder()
-                .hasNext(hasNext)
+                .totalCount(totalCount)
                 .accessRules(convertToResponse(rules))
                 .build();
     }
-    
+
     private static List<IpAccessRuleResponse> convertToResponse(final List<AccessRule> rules) {
         return rules.stream()
                 .map(IpAccessRuleResponse::from)
