@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import React, { useState } from "react"; 
 import {useMutation} from "@tanstack/react-query"
@@ -18,6 +17,8 @@ function App() {
   const [contentValue, setContentValue] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+
+  const [searchType, setSearchType] = useState("all");
 
   function handleCloseModal(){
     setIsModalOpen(false);
@@ -50,7 +51,16 @@ function App() {
         },
       });
     },
-    onSuccess: () => refetch(),
+    onSuccess: () => {if (searchType === "content") {
+        getContentMutation.mutate();
+        return;
+      }
+      if (searchType === "permission") {
+        getPermissionMutation.mutate();
+        return;
+      }
+      refetch();
+    },
     onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
   });
 
@@ -71,7 +81,12 @@ function App() {
 
       return res.json();
     },
-    onSuccess: (data) => setSearchData(data),
+    onSuccess: (data) => {
+      setSearchType("content");
+      setStartTime("");
+      setEndTime("");
+      setSearchData(data);
+    },
     onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
   });
 
@@ -94,6 +109,7 @@ function App() {
       return res.json();
     },
     onSuccess: (data) => {
+      setSearchType("permission");
       setContentValue("");
       setSearchData(data);
     },
@@ -190,14 +206,14 @@ function App() {
           </div>
         </div>
       </div>
-      {isModalOpen && <Modal handleClose={handleCloseModal}/>}
+      {isModalOpen && <Modal handleClose={handleCloseModal} refetch={refetch}/>}
   </>    
   );
 }
 
 export default App;
 
-const Modal = ({ handleClose }) => {
+const Modal = ({ handleClose, refetch }) => {
   const [currentIp, setCurrentIp] = useState("");
   const [content, setContent] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -224,7 +240,10 @@ const Modal = ({ handleClose }) => {
         body: JSON.stringify(data),
       });
     },
-    onSuccess: () => handleClose(),
+    onSuccess: () => {
+      refetch();
+      handleClose();
+    },
     onError: () => alert("문제가 발생했습니다. 다시 시도해주세요."),
   });
 
