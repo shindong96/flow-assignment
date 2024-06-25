@@ -8,7 +8,9 @@ import com.flow.assignment.dto.request.PermissionTimeRequest;
 import com.flow.assignment.dto.response.IpAccessRuleResponses;
 import com.flow.assignment.support.ErrorCode;
 import com.flow.assignment.support.TimeZoneConverter;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,10 @@ public class AccessRuleService {
     private static final int DIFFERENCES_PAGES_AND_DB_INDEX = 1;
     private static final Sort SORT_DIRECTION_DESC_BY_ID = Sort.by(Direction.DESC, "id");
     private static final String GMT_TIME_ZONE = "GMT";
+    private static final LocalDateTime MAX_DATE = LocalDateTime.of(LocalDate.of(9999, 12, 31),
+            LocalTime.of(23, 59));
+    private static final LocalDateTime MIN_DATE = LocalDateTime.of(LocalDate.of(0, 1, 1),
+            LocalTime.of(0, 0));
 
     private final AccessRuleRepository accessRuleRepository;
 
@@ -80,9 +86,12 @@ public class AccessRuleService {
         LocalDateTime endTime = request.getEndTime();
         validateStartIsGreaterThanEqualEnd(startTime, endTime);
 
+        LocalDateTime convertedStartTime = TimeZoneConverter.convert(startTime, timeZone, GMT_TIME_ZONE);
+        LocalDateTime convertedEndTime = TimeZoneConverter.convert(endTime, timeZone, GMT_TIME_ZONE);
+
         Page<AccessRule> rules = accessRuleRepository.findByPermissionTime(
-                TimeZoneConverter.convert(startTime, timeZone, GMT_TIME_ZONE),
-                TimeZoneConverter.convert(endTime, timeZone, GMT_TIME_ZONE),
+                convertedStartTime == null ? MIN_DATE : convertedStartTime,
+                convertedEndTime == null ? MAX_DATE : convertedEndTime,
                 PageRequest.of(request.getPage() - DIFFERENCES_PAGES_AND_DB_INDEX, request.getSize()
                         , SORT_DIRECTION_DESC_BY_ID));
 

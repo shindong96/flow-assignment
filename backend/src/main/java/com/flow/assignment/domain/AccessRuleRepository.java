@@ -17,8 +17,8 @@ public interface AccessRuleRepository extends JpaRepository<AccessRule, Long> {
     Page<AccessRule> findByContentContaining(String content, Pageable pageable);
 
     @Query("select ar from AccessRule ar"
-            + " where (:start is null or ar.startTime is null or ar.startTime <= :start)"
-            + " and (:end is null or ar.endTime is null or ar.endTime >= :end)")
+            + " where (ar.startTime is null or ar.startTime <= :start)"
+            + " and (ar.endTime is null or ar.endTime >= :end)")
     Page<AccessRule> findByPermissionTime(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end,
                                           Pageable pageable);
 }
